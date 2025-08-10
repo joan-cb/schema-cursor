@@ -225,11 +225,11 @@ class TestIntegration:
     def test_full_workflow_with_example_json(self):
         """Test the complete workflow with example.json."""
         # This test requires example.json to exist
-        example_path = Path("example.json")
+        example_path = Path("json/example.json")  # Fixed path
         if not example_path.exists():
             pytest.skip("example.json not found")
         
-        schema = handle_file("example.json")
+        schema = handle_file("json/example.json")  # Fixed path
         paths = extract_schema_paths(schema)
         
         # Verify we got expected paths from example.json

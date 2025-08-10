@@ -52,8 +52,23 @@ def update_schema_property(schema, path, annotation_type, value):
     if parent_schema is None or property_key is None:
         return False
     
+    # Map lowercase annotation types back to proper JSON Schema property names
+    annotation_mapping = {
+        "description": "description",
+        "default": "default", 
+        "example": "example",
+        "enum": "enum",
+        "format": "format",
+        "minitems": "minItems",
+        "maxitems": "maxItems"
+    }
+    
+    # Normalize the annotation type and map it back
+    normalized_type = str(annotation_type).strip().lower()
+    actual_property_name = annotation_mapping.get(normalized_type, annotation_type)
+    
     # Update the property with the annotation
-    parent_schema[property_key][annotation_type] = value
+    parent_schema[property_key][actual_property_name] = value
     return True
 
 
@@ -104,6 +119,9 @@ def validate_annotation(annotation_data, available_paths):
     if not annotation_type:
         return False, "Annotation type is required"
     
+    # Normalize annotation_type to lowercase and strip whitespace
+    annotation_type = str(annotation_type).strip().lower()
+    
     # Check if path exists in available paths
     path_exists = any(p["path"] == path for p in available_paths)
     if not path_exists:
@@ -112,13 +130,13 @@ def validate_annotation(annotation_data, available_paths):
     # Validate annotation type
     valid_annotations = [
         "description", "default", "example", "enum",
-        "format", "minItems", "maxItems"
+        "format", "minitems", "maxitems"
     ]
     if annotation_type not in valid_annotations:
-        return False, f"Invalid annotation type: {annotation_type}"
+        return False, f"Invalid annotation type: '{annotation_type}'. Valid types: {valid_annotations}"
     
     # Type-specific validations
-    if annotation_type in ["minItems", "maxItems"]:
+    if annotation_type in ["minitems", "maxitems"]:
         if value != "" and not isinstance(value, int):
             return False, f"{annotation_type} must be an integer"
     

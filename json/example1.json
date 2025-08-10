@@ -1,0 +1,84 @@
+{
+    "timestamp": "2025-08-10T14:52:31.482Z",
+    "level": "ERROR",
+    "service": "order-processing-service",
+    "version": "2.14.7",
+    "environment": "production",
+    "requestId": "f3a9a27b-1821-4dcb-b312-bf1ff04321dd",
+    "trace": {
+      "traceId": "8d6c72a54b4a0d2d",
+      "spanId": "7e9a1f3e2b5c1a92",
+      "parentSpanId": "5d8a0cba761e39ff",
+      "sampled": true
+    },
+    "http": {
+      "method": "POST",
+      "path": "/api/v2/orders",
+      "query": {},
+      "headers": {
+        "content-type": "application/json",
+        "x-forwarded-for": "192.168.10.45",
+        "authorization": "Bearer ***REDACTED***"
+      },
+      "statusCode": 502,
+      "latencyMs": 1834
+    },
+    "user": {
+      "id": "u_394857",
+      "accountType": "enterprise",
+      "organizationId": "org_7284",
+      "geo": {
+        "ip": "192.168.10.45",
+        "country": "US",
+        "region": "CA",
+        "city": "San Francisco"
+      }
+    },
+    "error": {
+      "type": "ServiceUnavailableError",
+      "message": "Upstream inventory service did not respond in time",
+      "causedBy": [
+        {
+          "type": "TimeoutError",
+          "message": "Request to inventory-service exceeded 1.5s timeout",
+          "host": "inventory-service-3.prod.cluster.local",
+          "port": 8080
+        },
+        {
+          "type": "CircuitBreakerOpenError",
+          "message": "Inventory service circuit breaker is open (50% failure rate threshold reached)"
+        }
+      ],
+      "stackTrace": [
+        "at InventoryClient.fetchStock (/src/clients/inventoryClient.js:112:17)",
+        "at OrderService.validateStock (/src/services/orderService.js:54:11)",
+        "at async OrderController.createOrder (/src/controllers/orderController.js:37:9)"
+      ]
+    },
+    "metrics": {
+      "dbQueryCount": 3,
+      "dbTotalTimeMs": 112,
+      "cacheHitRate": 0.72,
+      "externalServiceCalls": [
+        {
+          "service": "inventory-service",
+          "durationMs": 1502,
+          "success": false
+        },
+        {
+          "service": "payment-service",
+          "durationMs": 132,
+          "success": true
+        }
+      ]
+    },
+    "meta": {
+      "region": "us-west-2",
+      "node": "order-processing-service-5d8a9b7c89-xyz12",
+      "kubernetes": {
+        "namespace": "production",
+        "podIP": "10.23.5.18",
+        "containerID": "docker://38c8a7f9e329d8..."
+      }
+    }
+  }  

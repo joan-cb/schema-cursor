@@ -29,7 +29,7 @@ def main():
         print("Exiting...")
         return 0
     
-    mode, input_file, output_file = startup_result
+    input_file, output_file = startup_result
     
     # Run TUI mode only
     try:

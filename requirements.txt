@@ -22,6 +22,10 @@ Once values are added, the tool should update the schema and re-render the table
 The user should be able to navigate through the various levels of nestedness.
 The user should be prompted for the key path, annotation and value in one prompt.
 Once the user has added all the values, the tool should output the updated schema as a json file.
+The tool should be able to run in both CLI and TUI mode and the user should be able to choose which mode to run in.
+Whether they choose CLI or TUI, should not be based on parameters but asked when the tool starts.
+There should be no other options to pass in the command line.
+At startup, the tool should look for json in a json directory, and it should let the user choose which json file to use for the schema
 
 Technical Requirements:
 - Each function must be tested with unit tests.

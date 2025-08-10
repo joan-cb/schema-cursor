@@ -1,0 +1,278 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "timestamp": {
+      "type": "string"
+    },
+    "level": {
+      "type": "string",
+      "default": 1
+    },
+    "service": {
+      "type": "string"
+    },
+    "version": {
+      "type": "string"
+    },
+    "environment": {
+      "type": "string"
+    },
+    "requestId": {
+      "type": "string"
+    },
+    "trace": {
+      "type": "object",
+      "properties": {
+        "traceId": {
+          "type": "string",
+          "description": "the trace id etc."
+        },
+        "spanId": {
+          "type": "string"
+        },
+        "parentSpanId": {
+          "type": "string"
+        },
+        "sampled": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "parentSpanId",
+        "sampled",
+        "spanId",
+        "traceId"
+      ]
+    },
+    "http": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "query": {
+          "type": "object"
+        },
+        "headers": {
+          "type": "object",
+          "properties": {
+            "content-type": {
+              "type": "string"
+            },
+            "x-forwarded-for": {
+              "type": "string"
+            },
+            "authorization": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "authorization",
+            "content-type",
+            "x-forwarded-for"
+          ]
+        },
+        "statusCode": {
+          "type": "integer"
+        },
+        "latencyMs": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "headers",
+        "latencyMs",
+        "method",
+        "path",
+        "query",
+        "statusCode"
+      ]
+    },
+    "user": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "accountType": {
+          "type": "string"
+        },
+        "organizationId": {
+          "type": "string"
+        },
+        "geo": {
+          "type": "object",
+          "properties": {
+            "ip": {
+              "type": "string"
+            },
+            "country": {
+              "type": "string"
+            },
+            "region": {
+              "type": "string"
+            },
+            "city": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "city",
+            "country",
+            "ip",
+            "region"
+          ]
+        }
+      },
+      "required": [
+        "accountType",
+        "geo",
+        "id",
+        "organizationId"
+      ],
+      "description": "the user !"
+    },
+    "error": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "causedBy": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "host": {
+                "type": "string"
+              },
+              "port": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "message",
+              "type"
+            ]
+          }
+        },
+        "stackTrace": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "causedBy",
+        "message",
+        "stackTrace",
+        "type"
+      ]
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {
+        "dbQueryCount": {
+          "type": "integer"
+        },
+        "dbTotalTimeMs": {
+          "type": "integer"
+        },
+        "cacheHitRate": {
+          "type": "number"
+        },
+        "externalServiceCalls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "service": {
+                "type": "string"
+              },
+              "durationMs": {
+                "type": "integer"
+              },
+              "success": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "durationMs",
+              "service",
+              "success"
+            ]
+          }
+        }
+      },
+      "required": [
+        "cacheHitRate",
+        "dbQueryCount",
+        "dbTotalTimeMs",
+        "externalServiceCalls"
+      ]
+    },
+    "meta": {
+      "type": "object",
+      "properties": {
+        "region": {
+          "type": "string"
+        },
+        "node": {
+          "type": "string"
+        },
+        "kubernetes": {
+          "type": "object",
+          "properties": {
+            "namespace": {
+              "type": "string"
+            },
+            "podIP": {
+              "type": "string"
+            },
+            "containerID": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "containerID",
+            "namespace",
+            "podIP"
+          ]
+        }
+      },
+      "required": [
+        "kubernetes",
+        "node",
+        "region"
+      ]
+    }
+  },
+  "required": [
+    "environment",
+    "error",
+    "http",
+    "level",
+    "meta",
+    "metrics",
+    "requestId",
+    "service",
+    "timestamp",
+    "trace",
+    "user",
+    "version"
+  ]
+}

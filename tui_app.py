@@ -39,6 +39,7 @@ class AnnotationModal(ModalScreen[Optional[Dict[str, Any]]]):
     
     def compose(self) -> ComposeResult:
         """Compose the annotation modal."""
+        # Make sure the tuples are properly formatted for Textual Select
         annotation_types = [
             ("description", "Description"),
             ("default", "Default Value"), 
@@ -57,7 +58,11 @@ class AnnotationModal(ModalScreen[Optional[Dict[str, Any]]]):
                 yield Select(self.path_options, id="path-select", value=Select.BLANK)
                 
                 yield Label("Annotation Type:")
-                yield Select(annotation_types, id="annotation-select", value=Select.BLANK)
+                # Try explicit options instead of tuples
+                yield Select.from_values(
+                    ["description", "default", "example", "enum", "format", "minItems", "maxItems"],
+                    id="annotation-select"
+                )
                 
                 yield Label("Value:")
                 yield Input(placeholder="Enter annotation value...", id="value-input")
@@ -92,11 +97,14 @@ class AnnotationModal(ModalScreen[Optional[Dict[str, Any]]]):
         
         # Process value based on annotation type
         value = value_input.value.strip()
-        annotation_type = annotation_select.value
+        annotation_type = str(annotation_select.value).strip().lower()  # Ensure it's clean
+        
+        # Debug notification to see what we're getting
+        self.notify(f"Annotation type: '{annotation_type}'", severity="info")
         
         if annotation_type == "enum":
             value = [v.strip() for v in value.split(",") if v.strip()]
-        elif annotation_type in ["minItems", "maxItems"]:
+        elif annotation_type in ["minitems", "maxitems"]:  # lowercase
             try:
                 value = int(value)
             except ValueError:
@@ -106,7 +114,7 @@ class AnnotationModal(ModalScreen[Optional[Dict[str, Any]]]):
             try:
                 value = json.loads(value)
             except json.JSONDecodeError:
-                pass  # Keep as string if not valid JSON
+                pass  
         
         result = {
             "path": path_select.value,
@@ -257,7 +265,7 @@ class SchemaBuilderTUI(App):
     
     .modal-buttons {
         height: auto;
-        align: center;
+        align: center middle;
         padding: 1;
     }
     
@@ -334,7 +342,15 @@ class SchemaBuilderTUI(App):
     
     async def on_mount(self) -> None:
         """Load data when app starts."""
-        await self.load_schema_data()
+        # Initialize table columns once
+        table = self.query_one("#schema-table", DataTable)
+        table.add_columns(
+            "Path", "Type", "Required", "Description", "Default", 
+            "Example", "Enum", "Format", "MinItems", "MaxItems"
+        )
+        
+        # Load schema data
+        self.load_schema_data()
     
     @work
     async def load_schema_data(self) -> None:
@@ -345,23 +361,27 @@ class SchemaBuilderTUI(App):
             self.all_paths = extract_schema_paths(self.original_schema)
             self.current_paths = self.all_paths.copy()
             
-            await self.update_table()
-            await self.update_info_panel()
+            self.call_after_refresh(self.update_table)
+            self.call_after_refresh(self.update_info_panel)
             
-            self.query_one("#status-bar", Static).update(
-                f"Loaded {len(self.all_paths)} properties from {Path(self.input_file).name}"
+            self.call_after_refresh(
+                lambda: self.query_one("#status-bar", Static).update(
+                    f"Loaded {len(self.all_paths)} properties from {Path(self.input_file).name}"
+                )
             )
             
         except Exception as e:
-            self.notify(f"Error loading file: {e}", severity="error")
-            self.query_one("#status-bar", Static).update("Error loading file")
+            self.call_after_refresh(lambda: self.notify(f"Error loading file: {e}", severity="error"))
+            self.call_after_refresh(
+                lambda: self.query_one("#status-bar", Static).update("Error loading file")
+            )
     
     async def update_table(self) -> None:
         """Update the DataTable with current schema paths."""
         table = self.query_one("#schema-table", DataTable)
-        table.clear()
+        table.clear(columns=True)  # Clear both rows AND columns
         
-        # Add columns
+        # Add columns (now they won't be duplicated)
         table.add_columns(
             "Path", "Type", "Required", "Description", "Default", 
             "Example", "Enum", "Format", "MinItems", "MaxItems"
@@ -411,8 +431,9 @@ class SchemaBuilderTUI(App):
         filter_info.update(filter_text)
     
     @on(Button.Pressed, "#add-annotation")
+    @work
     async def action_add_annotation(self) -> None:
-        """Show annotation modal."""
+        """Show annotation modal.""" 
         if not self.current_paths:
             self.notify("No properties available", severity="warning")
             return
@@ -422,19 +443,22 @@ class SchemaBuilderTUI(App):
             await self.apply_annotation_to_schema(result)
     
     @on(Button.Pressed, "#filter")
+    @work
     async def action_filter_properties(self) -> None:
         """Show filter modal."""
         result = await self.push_screen_wait(
             FilterModal(self.current_filter_level, self.current_filter_prefix)
         )
         if result:
-            await self.apply_filters(result["level"], result["prefix"])
+            self.call_after_refresh(
+                lambda: self.apply_filters(result["level"], result["prefix"])
+            )
     
     @on(Button.Pressed, "#clear-filters")
     async def clear_filters(self) -> None:
         """Clear all filters."""
-        await self.apply_filters(0, "")
-        self.notify("Filters cleared", severity="info")
+        self.call_after_refresh(lambda: self.apply_filters(0, ""))
+        self.call_after_refresh(lambda: self.notify("Filters cleared", severity="info"))
     
     @on(Button.Pressed, "#save")
     async def action_save_schema(self) -> None:
@@ -444,7 +468,6 @@ class SchemaBuilderTUI(App):
     @on(Button.Pressed, "#export")
     async def export_json(self) -> None:
         """Export schema as JSON."""
-        # This could open a modal to choose filename or format
         await self.save_schema_file()
         self.notify("Schema exported", severity="success")
     
@@ -466,8 +489,12 @@ class SchemaBuilderTUI(App):
             # Update paths with new schema values
             self.all_paths = update_paths_with_schema(self.all_paths, updated_schema)
             # Reapply current filters
-            await self.apply_filters(self.current_filter_level, self.current_filter_prefix)
-            self.notify("Annotation added successfully", severity="success")
+            self.call_after_refresh(
+                lambda: self.apply_filters(self.current_filter_level, self.current_filter_prefix)
+            )
+            self.call_after_refresh(
+                lambda: self.notify("Annotation added successfully", severity="success")
+            )
         else:
             self.notify(f"Failed to add annotation: {error_msg}", severity="error")
     
@@ -488,8 +515,8 @@ class SchemaBuilderTUI(App):
             filtered_paths = filter_paths_by_prefix(filtered_paths, prefix)
         
         self.current_paths = filtered_paths
-        await self.update_table()
-        await self.update_info_panel()
+        self.call_after_refresh(self.update_table)
+        self.call_after_refresh(self.update_info_panel)
     
     async def save_schema_file(self) -> None:
         """Save the current schema to file."""
@@ -506,14 +533,7 @@ class SchemaBuilderTUI(App):
             # Find the path info for this row
             path_info = next((p for p in self.current_paths if p["path"] == event.row_key), None)
             if path_info:
-                # Could show details in info panel or open edit modal
-                details = (
-                    f"Path: {path_info['path']}\n"
-                    f"Type: {path_info['type']}\n"
-                    f"Required: {'Yes' if path_info['required'] else 'No'}\n"
-                    f"Description: {path_info['description'] or 'None'}"
-                )
-                # For now, just show a toast
+                # Show a notification with property details
                 self.notify(f"Selected: {path_info['path']}", severity="info")
     
     # Action methods for keyboard shortcuts
@@ -521,23 +541,11 @@ class SchemaBuilderTUI(App):
         """Quit the application."""
         self.exit()
     
-    async def action_add_annotation(self) -> None:
-        """Add annotation via keyboard shortcut."""
-        await self.query_one("#add-annotation", Button).press()
-    
-    async def action_filter_properties(self) -> None:
-        """Filter properties via keyboard shortcut."""
-        await self.query_one("#filter", Button).press()
-    
-    async def action_save_schema(self) -> None:
-        """Save schema via keyboard shortcut."""
-        await self.query_one("#save", Button).press()
-    
     async def action_refresh(self) -> None:
         """Refresh the display."""
-        await self.update_table()
-        await self.update_info_panel()
-        self.notify("Display refreshed", severity="info")
+        self.call_after_refresh(self.update_table)
+        self.call_after_refresh(self.update_info_panel)
+        self.call_after_refresh(lambda: self.notify("Display refreshed", severity="info"))
     
     def action_help(self) -> None:
         """Show help information."""
