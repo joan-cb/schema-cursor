@@ -116,7 +116,7 @@ def run_startup_sequence() -> Optional[Tuple[str, str]]:
     print(f"  💾 Output: {output_file}")
     print()
     
-    return mode, str(selected_file), output_file
+    return str(selected_file), output_file
 
 
 if __name__ == "__main__":
