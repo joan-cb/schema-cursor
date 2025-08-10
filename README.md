@@ -35,6 +35,20 @@ Run in interactive mode for schema annotation:
 python main.py example.json --interactive
 ```
 
+### Textual TUI Mode
+
+Run with modern Terminal User Interface (recommended):
+```bash
+python main.py example.json --tui
+```
+
+The TUI mode provides:
+- Interactive data tables with real-time updates
+- Modal forms for easy annotation input
+- Keyboard shortcuts and mouse support
+- Professional visual layout
+- Better navigation and filtering
+
 ### Filtering
 
 Filter by path prefix:

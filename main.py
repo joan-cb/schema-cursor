@@ -25,6 +25,13 @@ from navigation import (
     display_navigation_summary
 )
 
+# Import TUI app (only when needed to avoid import errors if textual not available)
+try:
+    from tui_app import run_tui_app
+    TUI_AVAILABLE = True
+except ImportError:
+    TUI_AVAILABLE = False
+
 
 class SchemaAnnotationTool:
     """Main application class for the JSON Schema Annotation Tool."""
@@ -211,12 +218,25 @@ def main():
     
     # Run in appropriate mode
     try:
-        if args.interactive:
+        if args.tui:
+            # Run Textual TUI mode
+            if not TUI_AVAILABLE:
+                handle_cli_error("Textual library not available. Install with: pip install textual")
+                return 1
+            
+            if not args.quiet:
+                print("Starting Textual TUI...")
+            
+            run_tui_app(args.input_file, args.output)
+            
+        elif args.interactive:
+            # Run classic interactive mode
             tool.run_interactive_mode()
         else:
+            # Run non-interactive mode
             tool.run_non_interactive_mode(args.format)
         
-        if not args.quiet:
+        if not args.quiet and not args.tui:
             display_completion_message(args.output, args.interactive)
         
         return 0

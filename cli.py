@@ -13,8 +13,9 @@ def create_parser():
         epilog="""
 Examples:
   %(prog)s input.json
-  %(prog)s input.json --output my_schema.json
+  %(prog)s input.json --tui
   %(prog)s input.json --interactive
+  %(prog)s input.json --output my_schema.json
         """
     )
     
@@ -33,6 +34,12 @@ Examples:
         "--interactive", "-i",
         action="store_true",
         help="Run in interactive mode for schema annotation"
+    )
+    
+    parser.add_argument(
+        "--tui",
+        action="store_true",
+        help="Run with Textual Terminal User Interface (TUI)"
     )
     
     parser.add_argument(
