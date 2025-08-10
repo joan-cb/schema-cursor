@@ -1,0 +1,36 @@
+Business Requirements:
+Build a command line tool that takes a json file as input and outputs a json schema.
+The tool should be able to handle nested json objects and arrays.
+The tool should be able to handle json objects with different types of primitive values.
+The tool should be able to handle json objects with different levels of nesting.
+The tool should use the schema_builder library to generate the schema.
+Once the schema is generated, the tool should render a table with the properties of the schema and their absolute paths.
+The table should also feature the following columns:
+- Type
+- Description
+- Default Value
+- Required
+- Example
+- AbsolutePath
+- Enum
+- Format
+- Example
+- MinItems
+- MaxItems
+Most of the columns should be populated with the values from the schema but the user should be able to add values.
+Once values are added, the tool should update the schema and re-render the table.
+The user should be able to navigate through the various levels of nestedness.
+The user should be prompted for the key path, annotation and value in one prompt.
+Once the user has added all the values, the tool should output the updated schema as a json file.
+
+Technical Requirements:
+- Each function must be tested with unit tests.
+- Use the pytest library for testing.
+- Test must go in their own file.
+- Each function must do one thing and one thing only. Simplicity is key.
+- There must be a main function that orchestrates the flow of the program.
+- Build incrementally and test each function as you go.
+- Use the example.json file to test the tool.
+- Always keep the code clean and readable.
+- Always endeavour to keep nestedness to a minimum.
+- Always consider various approaches to solving a problem and choose the simplest one.

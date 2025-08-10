@@ -1,0 +1,21 @@
+{
+    "name": "John",
+    "age": 30,
+    "city": "New York",
+    "isStudent": true,
+    "grades": [85, 90, 95],
+    "address": {
+        "street": "123 Main St",
+        "zip": "10001"
+    },
+    "phoneNumbers": [
+        {
+            "type": "home",
+            "number": "123-456-7890"
+        },
+        {
+            "type": "work",
+            "number": "098-765-4321"
+        }
+    ]
+}
